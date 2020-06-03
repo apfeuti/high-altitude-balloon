@@ -1,0 +1,9 @@
+Install
+
+1. Enable I2C
+https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c
+
+2. Install Pyhton-Lib for BME280 Sensor (also install dependencies like CircuitPython)
+https://learn.adafruit.com/adafruit-bme280-humidity-barometric-pressure-temperature-sensor-breakout/python-circuitpython-test
+sudo pip3 install adafruit-circuitpython-bme280
+

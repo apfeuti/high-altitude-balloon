@@ -1,0 +1,8 @@
+wpa_cli terminate
+sudo ifconfig wlan0 down
+sudo iwconfig wlan0 mode ad-hoc channel 6 essid high-altitude-balloon
+sudo ip addr add 192.168.1.42/24 dev wlan0
+sudo ifconfig wlan0 up
+
+On Ubuntu first:
+sudo service network-manager stop
