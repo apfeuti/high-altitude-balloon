@@ -9,7 +9,15 @@ import logging
 
 # logging timestamp with millis AND timezone is tricky. See https://stackoverflow.com/questions/43667155/datetime-with-milliseconds-or-microseconds-and-timezone-offset
 tz = time.strftime('%z')
-logging.basicConfig(format='%(asctime)s' + tz + ' %(threadName)s %(name)s %(levelname)s: %(message)s', level=logging.DEBUG)
+loggingFormat = '%(asctime)s' + tz + ' %(threadName)s %(name)s %(levelname)s: %(message)s'
+logging.basicConfig(format=loggingFormat, filename='balloon.log', level=logging.DEBUG)
+
+# log also to console
+consoleHandler = logging.StreamHandler()
+formatter = logging.Formatter(loggingFormat)
+consoleHandler.setFormatter(formatter)
+logger = logging.getLogger()
+logger.addHandler(consoleHandler)
 
 board = Board()
 bme280 = BME280(1013.25)
