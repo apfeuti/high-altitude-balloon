@@ -98,7 +98,7 @@ class AltitudeMeasurable:
                     
                 self._observers_landed = observersCopy
 
-            time.sleep(0.01)
+            time.sleep(2)
             
       
     def altitude(self):

@@ -20,7 +20,7 @@ class GPS(AltitudeMeasurable):
         if (self._current_altitude == None):
             return self._start_altitude
         
-        cycle_time = 1 # second
+        cycle_time = 20 # second
         jitter = random.uniform(-2.0, 2.0)
         landing_altitude = 700
         burst_altitude = 34000

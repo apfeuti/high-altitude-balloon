@@ -24,5 +24,13 @@ bme280 = BME280(1013.25)
 measureRecorder = MeasureRecorder('measures.csv', 2, board, gps, bme280)
 measureRecorder.start_measures()
 
+# init wifi
+board.disableWifi(gps.altitude())
+board.enableWifi(gps.altitude())
+
+# register listeners on events
+gps.subscribe_rise_above(4000, board.disableWifi)
+gps.subscribe_fall_below(4000, board.enableWifi)
+
 
 
