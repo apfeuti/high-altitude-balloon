@@ -2,7 +2,7 @@ import time
 import logging
 
 class AltitudeMeasurable:
-    """Abstract base-class for sensors which can report altitude. Clients can register on several events, reltated to the altitude"""
+    """Abstract base-class for sensors which can report altitude. Clients can register on several events, related to the altitude"""
     
     
     
@@ -88,8 +88,8 @@ class AltitudeMeasurable:
             self._observers_fall_below = observersCopy
                 
             if prev_is_ascending == False and self._is_ascending == None:
-                self._logger.info("Altitude: %.2f. Landed.", self._current_altitude)
                 self._landing_altitude = self._current_altitude
+                self._logger.info("Altitude: %.2f. Landed.", self._landing_altitude)
                 observersCopy = self._observers_landed.copy()
                 for callback in self._observers_landed:
                     callback(self._landing_altitude)

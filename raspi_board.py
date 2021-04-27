@@ -29,7 +29,7 @@ class Board:
 
     def disableWifi(self, altitude):
         self._logger.info("Disabling Wifi at altitude: " + str(altitude))
-        #self._logger.info(os.popen("sudo wpa_cli terminate").readline())
+        self._logger.info(os.popen("sudo wpa_cli terminate").readline())
         self._logger.info(os.popen("sudo ifconfig wlan0 down").readline())
 
     def enableWifi(self, altitude):

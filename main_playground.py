@@ -1,6 +1,7 @@
 from raspi_board import Board
 from bme280 import BME280
 from gps import GPS
+from picture_capturer import PictureCapturer
 import csv
 import os.path
 import datetime
@@ -102,7 +103,7 @@ if not os.path.exists(data_file):
         writer = csv.writer(csvfile, delimiter=',')
         writer.writerow(header)
 
-do_measure = True
+do_measure = False
 
 while (do_measure):
     with open(data_file, 'a') as csvfile:
@@ -129,3 +130,8 @@ while (do_measure):
         writer.writerow(data)
 
     time.sleep(2)
+
+pictureCapturer = PictureCapturer(5)
+pictureCapturer.start_capturing()
+time.sleep(20)
+pictureCapturer.stop_capturing()

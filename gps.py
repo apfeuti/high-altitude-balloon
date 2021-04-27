@@ -8,7 +8,7 @@ class GPS(AltitudeMeasurable):
 
     _ascending_rate = 5 # m/s
     
-    _start_altitude = 440
+    _start_altitude = 451
 
     def __init__(self):
         super().__init__()
@@ -20,7 +20,7 @@ class GPS(AltitudeMeasurable):
         if (self._current_altitude == None):
             return self._start_altitude
         
-        cycle_time = 20 # second
+        cycle_time = 40 # second
         jitter = random.uniform(-2.0, 2.0)
         landing_altitude = 700
         burst_altitude = 34000

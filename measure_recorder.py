@@ -7,12 +7,13 @@ import datetime
 class MeasureRecorder:
     """Records the measures and writes the to csv-file"""
     
-    def __init__(self, data_file, measure_frequency_sec, board, gps, bme280):
+    def __init__(self, data_file, measure_frequency_sec, board, gps, bme280InCapsule, bme280Outside):
         self._data_file = data_file
         self._measure_frequency_sec = measure_frequency_sec
         self._board = board
         self._gps = gps
-        self._bme280 = bme280
+        self._bme280InCapsule = bme280InCapsule
+        self._bme280Outside = bme280Outside
         
     def start_measures(self):
         thread = threading.Thread(target=self._start)
@@ -24,7 +25,8 @@ class MeasureRecorder:
         if not os.path.exists(self._data_file):
             header = ["time_utc", "board_temp", "board_volts_core", "board_volts_sdram_c", "board_volts_sdram_i", "board_volts_sdram_p", "board_throttled",
                 "gps_latitude", "gps_longitude", "gps_altitude", "gps_ascending_rate", "gps_speed", "gps_heading",
-                "out_temp", "out_humidity", "out_pressure", "baro_altitude"]
+                "capsule_temp", "capsule_humidity", "capsule_pressure", "capsule_baro_altitude",
+                "out_temp", "out_humidity", "out_pressure", "out_baro_altitude"]
             with open(self._data_file, 'wt') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
                 writer.writerow(header)
@@ -46,10 +48,15 @@ class MeasureRecorder:
                         "{:0.2f}".format(self._gps.ascending_rate()),
                         "{:0.2f}".format(self._gps.speed()),
                         "{:0.2f}".format(self._gps.heading()),
-                        "{:0.2f}".format(self._bme280.temp()),
-                        "{:0.2f}".format(self._bme280.humidity()),
-                        "{:0.5f}".format(self._bme280.pressure()),
-                        "{:0.2f}".format(self._bme280.altitude())]
+                        "{:0.2f}".format(self._bme280InCapsule.temp()),
+                        "{:0.2f}".format(self._bme280InCapsule.humidity()),
+                        "{:0.5f}".format(self._bme280InCapsule.pressure()),
+                        "{:0.2f}".format(self._bme280InCapsule.altitude()),
+                        "{:0.2f}".format(self._bme280Outside.temp()),
+                        "{:0.2f}".format(self._bme280Outside.humidity()),
+                        "{:0.5f}".format(self._bme280Outside.pressure()),
+                        "{:0.2f}".format(self._bme280Outside.altitude())
+                        ]
                 writer = csv.writer(csvfile, delimiter=',')
                 writer.writerow(data)
 
