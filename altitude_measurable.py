@@ -5,7 +5,6 @@ class AltitudeMeasurable:
     """Abstract base-class for sensors which can report altitude. Clients can register on several events, related to the altitude"""
     
     
-    
     def __init__(self):
         
         self._logger = logging.getLogger(type(self).__name__)
@@ -14,8 +13,8 @@ class AltitudeMeasurable:
         self._landing_time = None
         self._landing_altitude = None
     
-        self._current_altitude = None
-        self._current_altitude = self._altitude()
+        #self._current_altitude = None
+        #self._current_altitude = self._altitude()
     
         self._N = 5 # nbr of elements to calculate moving-avg
     
@@ -32,77 +31,78 @@ class AltitudeMeasurable:
         self._observers_landed = []
         
     
-    def _altitude():
+    def altitude():
         """overriden by subclass"""
         pass
     
     
     def _start(self):
         altitude_diffs = []
+        prev_altitude = None
 
         while True:
             prev_is_ascending = self._is_ascending
 
-            last_altitude = self._current_altitude
-            self._current_altitude = self._altitude()
+            current_altitude = self.altitude()
+            print("prevAlt: " + str(prev_altitude))
+            print("currentAlt: " + str(current_altitude))
 
-            altitude_diffs.append(self._current_altitude - last_altitude)
-            altitude_diffs = altitude_diffs[-1 * self._N:] # only keep N-last elements
-            moving_avg = self._moving_avg(altitude_diffs)
-            if moving_avg >= 2:
-                self._is_ascending = True
-            elif moving_avg <= -2:
-                self._is_ascending = False
-            else:
-                self._is_ascending = None # undefined, probably by starting-place or after landing
+            if not current_altitude is None and not prev_altitude is None:
+                altitude_diffs.append(current_altitude - prev_altitude)
+                altitude_diffs = altitude_diffs[-1 * self._N:] # only keep N-last elements
+                moving_avg = self._moving_avg(altitude_diffs)
+                if moving_avg >= 2:
+                    self._is_ascending = True
+                elif moving_avg <= -2:
+                    self._is_ascending = False
+                else:
+                    self._is_ascending = None # undefined, probably by starting-place or after landing
 
-            if prev_is_ascending != self._is_ascending:
-                self._logger.info("Altitude: %.2f. State change from is_ascending %s to %s", self._current_altitude, str(prev_is_ascending), str(self._is_ascending))
+                if prev_is_ascending != self._is_ascending:
+                    self._logger.info("Altitude: %.2f. State change from is_ascending %s to %s", self._current_altitude, str(prev_is_ascending), str(self._is_ascending))
 
-            if prev_is_ascending == True and self._is_ascending != True:
-                self._logger.info("Altitude: %.2f. Burst!", self._current_altitude)
-                observersCopy = self._observers_burst.copy()
-                for callback in self._observers_burst:
-                    callback(self._current_altitude)
+                if prev_is_ascending == True and self._is_ascending != True:
+                    self._logger.info("Altitude: %.2f. Burst!", self._current_altitude)
+                    observersCopy = self._observers_burst.copy()
+                    for callback in self._observers_burst:
+                        callback(current_altitude)
+                        # clear registered callback. Sending event only once!
+                        observersCopy.remove(callback)
+                        
+                    self._observers_burst = observersCopy
+                        
+                observersCopy = self._observers_rise_above.copy()
+                for altitude_key in list(filter(lambda x: current_altitude > x and self._is_ascending == True, self._observers_rise_above.keys())):
+                    callback = self._observers_rise_above[altitude_key]
+                    callback(current_altitude)
                     # clear registered callback. Sending event only once!
-                    observersCopy.remove(callback)
+                    observersCopy.pop(altitude_key)
                     
-                self._observers_burst = observersCopy
-                    
-            observersCopy = self._observers_rise_above.copy()
-            for altitude_key in list(filter(lambda x: self._current_altitude > x and self._is_ascending == True, self._observers_rise_above.keys())):
-                callback = self._observers_rise_above[altitude_key]
-                callback(self._current_altitude)
-                # clear registered callback. Sending event only once!
-                observersCopy.pop(altitude_key)
-                
-            self._observers_rise_above = observersCopy
-                    
-            observersCopy = self._observers_fall_below.copy()
-            for altitude_key in list(filter(lambda x: self._current_altitude < x and self._is_ascending == False, self._observers_fall_below.keys())):
-                callback = self._observers_fall_below[altitude_key]
-                callback(self._current_altitude)
-                # clear registered callback. Sending event only once!
-                observersCopy.pop(altitude_key)
-                
-            self._observers_fall_below = observersCopy
-                
-            if prev_is_ascending == False and self._is_ascending == None:
-                self._landing_altitude = self._current_altitude
-                self._logger.info("Altitude: %.2f. Landed.", self._landing_altitude)
-                observersCopy = self._observers_landed.copy()
-                for callback in self._observers_landed:
-                    callback(self._landing_altitude)
+                self._observers_rise_above = observersCopy
+                        
+                observersCopy = self._observers_fall_below.copy()
+                for altitude_key in list(filter(lambda x: current_altitude < x and self._is_ascending == False, self._observers_fall_below.keys())):
+                    callback = self._observers_fall_below[altitude_key]
+                    callback(current_altitude)
                     # clear registered callback. Sending event only once!
-                    observersCopy.remove(callback)
+                    observersCopy.pop(altitude_key)
                     
-                self._observers_landed = observersCopy
+                self._observers_fall_below = observersCopy
+                    
+                if prev_is_ascending == False and self._is_ascending == None:
+                    self._landing_altitude = current_altitude
+                    self._logger.info("Altitude: %.2f. Landed.", self._landing_altitude)
+                    observersCopy = self._observers_landed.copy()
+                    for callback in self._observers_landed:
+                        callback(self._landing_altitude)
+                        # clear registered callback. Sending event only once!
+                        observersCopy.remove(callback)
+                        
+                    self._observers_landed = observersCopy
 
+            prev_altitude = current_altitude
             time.sleep(2)
             
-      
-    def altitude(self):
-        return self._current_altitude
             
     def landing_time(self):
         return self._landing_time

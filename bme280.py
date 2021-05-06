@@ -36,7 +36,7 @@ class BME280(AltitudeMeasurable):
     def pressure(self):
         return self._bme280.pressure
 
-    def _altitude(self):
+    def altitude(self):
         return self._bme280.altitude
     
     @classmethod
