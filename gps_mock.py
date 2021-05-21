@@ -19,7 +19,7 @@ class GPSMock(AltitudeMeasurable):
 
     def __init__(self):
         super().__init__()
-        thread = threading.Thread(target=self._start)
+        thread = threading.Thread(target=self._start, name="GPSMockThread")
         thread.start()
 
 
@@ -35,7 +35,7 @@ class GPSMock(AltitudeMeasurable):
             self._current_altitude = self._start_altitude
             return self._current_altitude
         
-        time_factor = 100 # simulation is x time faster than reality
+        time_factor = 1 # simulation is x time faster than reality
         jitter = random.uniform(-2.0, 2.0)
         landing_altitude = 700
         burst_altitude = 34000
@@ -49,15 +49,12 @@ class GPSMock(AltitudeMeasurable):
         else:
             self._current_altitude = self._current_altitude + jitter
 
-        if self._current_altitude >= burst_altitude:
+        if self._current_altitude >= burst_altitude and self._ascending_rate > 0:
             self._ascending_rate *= -1
 
         self._prev_time = datetime.datetime.utcnow()
         return self._current_altitude
     
-
-    #def ascending_rate(self):
-    #    return self._ascending_rate
 
     def latitude(self):
         return 47.0746
@@ -73,6 +70,3 @@ class GPSMock(AltitudeMeasurable):
 
     def utc(self):
         return time.gmtime()
-
-
-# gps = GPS()

@@ -22,4 +22,4 @@ pip3 install exif
 5. GPS
 https://learn.adafruit.com/adafruit-ultimate-gps/overview
 raspi-config -> Inteface Options -> Serial -> No console login, Yes serial port hardware
-cdsudo pip3 install adafruit-circuitpython-gps
+sudo pip3 install adafruit-circuitpython-gps

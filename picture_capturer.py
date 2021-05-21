@@ -20,7 +20,7 @@ class PictureCapturer:
     def start_capturing(self):
         self._stop = False
         self._logger.info("Start capturing pictures with frequency %f sec", self._capturing_frequency_sec)
-        thread = threading.Thread(target=self._start)
+        thread = threading.Thread(target=self._start, name="PictureCapturerThread")
         thread.start()
 
     def stop_capturing(self):
@@ -28,7 +28,7 @@ class PictureCapturer:
         self._logger.info("Stop capturing pictures")
 
     def _start(self):
-        for filename in self._camera.capture_continuous('hab-{timestamp:%Y-%m-%d-%H-%M-%S}.jpg'):
+        for filename in self._camera.capture_continuous('./data/pictures/hab-{timestamp:%Y-%m-%d-%H-%M-%S}.jpg'):
             #with open(filename, 'rb') as image_file:
             #    my_image = Image(image_file)
                 #my_image.gps_latitude = '47.0'

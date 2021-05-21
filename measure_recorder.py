@@ -16,7 +16,7 @@ class MeasureRecorder:
         self._bme280Outside = bme280Outside
         
     def start_measures(self):
-        thread = threading.Thread(target=self._start)
+        thread = threading.Thread(target=self._start, name="MeasurerRecorderThread")
         thread.start()
         
     
@@ -24,17 +24,17 @@ class MeasureRecorder:
     def _start(self):
         if not os.path.exists(self._data_file):
             header = ["time_utc", "board_temp", "board_volts_core", "board_volts_sdram_c", "board_volts_sdram_i", "board_volts_sdram_p", "board_throttled",
-                "gps_utc", "gps_latitude", "gps_longitude", "gps_altitude", "gps_speed", "gps_heading",
-                "capsule_temp", "capsule_humidity", "capsule_pressure", "capsule_baro_altitude",
-                "out_temp", "out_humidity", "out_pressure", "out_baro_altitude"]
+                "gps_utc", "gps_latitude", "gps_longitude", "gps_altitude", "gps_speed_km/h", "gps_heading", "gps_ascending_rate_m/s",
+                "capsule_temp", "capsule_humidity", "capsule_pressure", "capsule_baro_altitude", "capsule_ascending_rate_m/s",
+                "out_temp", "out_humidity", "out_pressure", "out_baro_altitude", "out_ascending_rate_m/s"]
             with open(self._data_file, 'wt') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
                 writer.writerow(header)
         
         while (True):
             with open(self._data_file, 'a') as csvfile:
-                now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat(timespec='milliseconds')
-                data = [now,
+                startSample = datetime.datetime.utcnow()
+                data = [startSample.replace(tzinfo=datetime.timezone.utc).isoformat(timespec='milliseconds'),
                         self._board.temp(),
                         self._board.volt_core(),
                         self._board.volt_sdram_c(),
@@ -45,21 +45,28 @@ class MeasureRecorder:
                         "{:0.6f}".format(self._gps.latitude()),
                         "{:0.6f}".format(self._gps.longitude()),
                         "{:0.2f}".format(self._gps.altitude()),
-                        #"{:0.2f}".format(self._gps.ascending_rate()),
                         "{:0.2f}".format(self._gps.speed()),
                         "{:0.2f}".format(self._gps.heading()),
+                        "{:0.2f}".format(self._gps.ascending_rate()),
                         "{:0.2f}".format(self._bme280InCapsule.temp()),
                         "{:0.2f}".format(self._bme280InCapsule.humidity()),
                         "{:0.5f}".format(self._bme280InCapsule.pressure()),
                         "{:0.2f}".format(self._bme280InCapsule.altitude()),
+                        "{:0.2f}".format(self._bme280InCapsule.ascending_rate()),
                         "{:0.2f}".format(self._bme280Outside.temp()),
                         "{:0.2f}".format(self._bme280Outside.humidity()),
                         "{:0.5f}".format(self._bme280Outside.pressure()),
-                        "{:0.2f}".format(self._bme280Outside.altitude())
+                        "{:0.2f}".format(self._bme280Outside.altitude()),
+                        "{:0.2f}".format(self._bme280Outside.ascending_rate())
                         ]
                 writer = csv.writer(csvfile, delimiter=',')
                 writer.writerow(data)
+                endSample = datetime.datetime.utcnow()
+                timeToReadSensors = (endSample - startSample).total_seconds()
+                sleepTime = self._measure_frequency_sec
+                if (timeToReadSensors < self._measure_frequency_sec):
+                    sleepTime -= timeToReadSensors
 
-            time.sleep(self._measure_frequency_sec)
+            time.sleep(sleepTime)
         
         

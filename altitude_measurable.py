@@ -1,4 +1,5 @@
 import time
+import datetime
 import logging
 
 class AltitudeMeasurable:
@@ -13,10 +14,9 @@ class AltitudeMeasurable:
         self._landing_time = None
         self._landing_altitude = None
     
-        #self._current_altitude = None
-        #self._current_altitude = self._altitude()
+        self._ascending_rates = [0]
     
-        self._N = 5 # nbr of elements to calculate moving-avg
+        self._N = 5 # nbr of elements to calculate moving-avg for ascending-rate
     
         # observers are notified when some events occurs
     
@@ -37,23 +37,30 @@ class AltitudeMeasurable:
     
     
     def _start(self):
-        altitude_diffs = []
         prev_altitude = None
+        prev_time = datetime.datetime.utcnow()
 
         while True:
             prev_is_ascending = self._is_ascending
 
             current_altitude = self.altitude()
-            print("prevAlt: " + str(prev_altitude))
-            print("currentAlt: " + str(current_altitude))
+
+            now = datetime.datetime.utcnow()
+            seconds_since_prev = (now - prev_time).total_seconds()
+            prev_time = now
 
             if not current_altitude is None and not prev_altitude is None:
-                altitude_diffs.append(current_altitude - prev_altitude)
-                altitude_diffs = altitude_diffs[-1 * self._N:] # only keep N-last elements
-                moving_avg = self._moving_avg(altitude_diffs)
-                if moving_avg >= 2:
+                if (seconds_since_prev > 0):
+                    current_ascending_rate = (current_altitude - prev_altitude) / seconds_since_prev # m/s : > 0 ascending, < 0 descending
+                else:
+                    current_ascending_rate = 0
+
+                self._ascending_rates.append(current_ascending_rate)
+                self._ascending_rates = self._ascending_rates[-1 * self._N:] # only keep N-last elements
+                moving_avg = self._moving_avg(self._ascending_rates)
+                if moving_avg >= 1: # m/s
                     self._is_ascending = True
-                elif moving_avg <= -2:
+                elif moving_avg <= -1:
                     self._is_ascending = False
                 else:
                     self._is_ascending = None # undefined, probably by starting-place or after landing
@@ -91,6 +98,7 @@ class AltitudeMeasurable:
                     
                 if prev_is_ascending == False and self._is_ascending == None:
                     self._landing_altitude = current_altitude
+                    self._landing_time = now
                     self._logger.info("Altitude: %.2f. Landed.", self._landing_altitude)
                     observersCopy = self._observers_landed.copy()
                     for callback in self._observers_landed:
@@ -103,7 +111,9 @@ class AltitudeMeasurable:
             prev_altitude = current_altitude
             time.sleep(2)
             
-            
+    def ascending_rate(self):
+        return self._ascending_rates[-1] # last element is the most recent one
+
     def landing_time(self):
         return self._landing_time
 
@@ -134,7 +144,6 @@ class AltitudeMeasurable:
             if i>=self._N:
                 moving_ave = (cumsum[i] - cumsum[i - self._N]) / self._N
                 #can do stuff with moving_ave here
-                #moving_aves.append(moving_ave)
 
         return moving_ave
     

@@ -53,15 +53,12 @@ class GPSUltimate(AltitudeMeasurable):
         # gps.send_command(b'PMTK220,500')
 
         super().__init__()
-        thread = threading.Thread(target=self._start)
+        thread = threading.Thread(target=self._start, name="GPSUltimateThread")
         thread.start()
 
-    def _altitude(self):
+    def altitude(self):
         self._gps.update()
         return self._gps.altitude_m
-
-    #def ascending_rate(self):
-    #    return self._ascending_rate
 
     def latitude(self):
         self._gps.update()
@@ -87,8 +84,3 @@ class GPSUltimate(AltitudeMeasurable):
     def has_3d_fix(self):
         self._gps.update()
         return self._gps.has_3d_fix
-
-
-
-
-
