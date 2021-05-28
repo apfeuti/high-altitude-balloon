@@ -64,6 +64,11 @@ measureRecorder.start_measures()
 #gps.subscribe_fall_below(4000, board.enableWifi)
 
 pictureCapturer = PictureCapturer(5)
-pictureCapturer.start_capturing()
 gps.subscribe_landed(pictureCapturer.stop_capturing)
 
+# Caution: This is a blocking call. All attempts to use the picamera
+# in a own thread or even process resulted in a freeze of the whole raspberry
+# somewhat between 20 mins and two hours!
+pictureCapturer.start_capturing()
+
+logger.info("Main finished")

@@ -1,6 +1,6 @@
 import time
-import datetime
-import threading
+from datetime import datetime
+import multiprocessing
 import logging
 from exif import Image
 from picamera import PiCamera
@@ -11,37 +11,28 @@ class PictureCapturer:
 
     def __init__(self, capturing_frequency_sec):
         self._logger = logging.getLogger(self.__class__.__name__)
-
-        self._camera = PiCamera()
-        self._camera.resolution = (2592, 1944)
         self._capturing_frequency_sec = capturing_frequency_sec
-        self._stop = False
+        self._stop_capturing = False
+        self._camera_warmup_sec = 1
 
     def start_capturing(self):
-        self._stop = False
         self._logger.info("Start capturing pictures with frequency %f sec", self._capturing_frequency_sec)
-        thread = threading.Thread(target=self._start, name="PictureCapturerThread")
-        thread.start()
 
-    def stop_capturing(self):
-        self._stop = True
-        self._logger.info("Stop capturing pictures")
+        # Threading and multiprocessing does not work with picamera. For some reason the whole raspberry freezes after ca 20 minutes.
+        # Caution: This is blocking!
+        while self._stop_capturing == False:
+            with PiCamera() as camera:
+                camera.resolution = (2592, 1944)
+                time.sleep(self._camera_warmup_sec)
+                filename = './data/pictures/hab-{}.jpg'.format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+                camera.capture(filename)
+            
+            time.sleep(self._capturing_frequency_sec - self._camera_warmup_sec - 1)  #-1, ca time to take the picture
 
-    def _start(self):
-        for filename in self._camera.capture_continuous('./data/pictures/hab-{timestamp:%Y-%m-%d-%H-%M-%S}.jpg'):
-            #with open(filename, 'rb') as image_file:
-            #    my_image = Image(image_file)
-                #my_image.gps_latitude = '47.0'
-                #my_image.gps_longitude = '7.2'
-                #my_image.gps_altitude = '1380'
-                # my_image.foo = 'bar'
-                #my_image.model = "EXIF Package"
-                #my_image.set("gps_altitude", "199.034")  # in meters
-                #my_image.gps_altitude_ref = GpsAltitudeRef.ABOVE_SEA_LEVEL
+        self._logger.info("Stopped capturing pictures")
+        
+    def stop_capturing(self, landing_altitude):
+        self._logger.info("Stop capturing pictures at altitude {}".format(landing_altitude))
+        self._stop_capturing = True
 
-            #with open(filename + '_exif', 'wb') as image_with_exif:
-            #    image_with_exif.write(my_image.get_file())
-
-            time.sleep(self._capturing_frequency_sec)
-            if self._stop:
-                break
+            

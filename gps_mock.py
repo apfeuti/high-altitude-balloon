@@ -7,6 +7,8 @@ import time
 class GPSMock(AltitudeMeasurable):
     """Provides measures about GPS-positioning"""
 
+    # must be static, due to usage of gps.altitude() in main
+    
     _ascending_rate = 5 # m/s
     
     _start_altitude = 451
