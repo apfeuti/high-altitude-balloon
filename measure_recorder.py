@@ -3,11 +3,13 @@ import threading
 import csv
 import os.path
 import datetime
+import logging
 
 class MeasureRecorder:
     """Records the measures and writes the to csv-file"""
     
     def __init__(self, data_file, measure_frequency_sec, board, gps, bme280InCapsule, bme280Outside):
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._data_file = data_file
         self._measure_frequency_sec = measure_frequency_sec
         self._board = board
@@ -32,40 +34,44 @@ class MeasureRecorder:
                 writer.writerow(header)
         
         while (True):
-            with open(self._data_file, 'a') as csvfile:
-                startSample = datetime.datetime.utcnow()
-                data = [startSample.replace(tzinfo=datetime.timezone.utc).isoformat(timespec='milliseconds'),
-                        self._board.temp(),
-                        self._board.volt_core(),
-                        self._board.volt_sdram_c(),
-                        self._board.volt_sdram_i(),
-                        self._board.volt_sdram_p(),
-                        self._board.throttled(),                  #0x5 means: under voltage, currently throttled. See https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=147781&start=50#p972790
-                        time.strftime('%Y-%m-%dT%H:%M:%SZ', self._gps.utc()),
-                        "{:0.6f}".format(self._gps.latitude()),
-                        "{:0.6f}".format(self._gps.longitude()),
-                        "{:0.2f}".format(self._gps.altitude()),
-                        "{:0.2f}".format(self._gps.speed()),
-                        "{:0.2f}".format(self._gps.heading()),
-                        "{:0.2f}".format(self._gps.ascending_rate()),
-                        "{:0.2f}".format(self._bme280InCapsule.temp()),
-                        "{:0.2f}".format(self._bme280InCapsule.humidity()),
-                        "{:0.5f}".format(self._bme280InCapsule.pressure()),
-                        "{:0.2f}".format(self._bme280InCapsule.altitude()),
-                        "{:0.2f}".format(self._bme280InCapsule.ascending_rate()),
-                        "{:0.2f}".format(self._bme280Outside.temp()),
-                        "{:0.2f}".format(self._bme280Outside.humidity()),
-                        "{:0.5f}".format(self._bme280Outside.pressure()),
-                        "{:0.2f}".format(self._bme280Outside.altitude()),
-                        "{:0.2f}".format(self._bme280Outside.ascending_rate())
-                        ]
-                writer = csv.writer(csvfile, delimiter=',')
-                writer.writerow(data)
-                endSample = datetime.datetime.utcnow()
-                timeToReadSensors = (endSample - startSample).total_seconds()
-                sleepTime = self._measure_frequency_sec
-                if (timeToReadSensors < self._measure_frequency_sec):
-                    sleepTime -= timeToReadSensors
+            try:
+                with open(self._data_file, 'a') as csvfile:
+                    startSample = datetime.datetime.utcnow()
+                    data = [startSample.replace(tzinfo=datetime.timezone.utc).isoformat(timespec='milliseconds'),
+                            self._board.temp(),
+                            self._board.volt_core(),
+                            self._board.volt_sdram_c(),
+                            self._board.volt_sdram_i(),
+                            self._board.volt_sdram_p(),
+                            self._board.throttled(),                  #0x5 means: under voltage, currently throttled. See https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=147781&start=50#p972790
+                            time.strftime('%Y-%m-%dT%H:%M:%SZ', self._gps.utc()),
+                            "{:0.6f}".format(self._gps.latitude()),
+                            "{:0.6f}".format(self._gps.longitude()),
+                            "{:0.2f}".format(self._gps.altitude()),
+                            "{:0.2f}".format(self._gps.speed()),
+                            "{:0.2f}".format(self._gps.heading()),
+                            "{:0.2f}".format(self._gps.ascending_rate()),
+                            "{:0.2f}".format(self._bme280InCapsule.temp()),
+                            "{:0.2f}".format(self._bme280InCapsule.humidity()),
+                            "{:0.5f}".format(self._bme280InCapsule.pressure()),
+                            "{:0.2f}".format(self._bme280InCapsule.altitude()),
+                            "{:0.2f}".format(self._bme280InCapsule.ascending_rate()),
+                            "{:0.2f}".format(self._bme280Outside.temp()),
+                            "{:0.2f}".format(self._bme280Outside.humidity()),
+                            "{:0.5f}".format(self._bme280Outside.pressure()),
+                            "{:0.2f}".format(self._bme280Outside.altitude()),
+                            "{:0.2f}".format(self._bme280Outside.ascending_rate())
+                            ]
+                    writer = csv.writer(csvfile, delimiter=',')
+                    writer.writerow(data)
+                    endSample = datetime.datetime.utcnow()
+                    timeToReadSensors = (endSample - startSample).total_seconds()
+                    sleepTime = self._measure_frequency_sec
+                    if (timeToReadSensors < self._measure_frequency_sec):
+                        sleepTime -= timeToReadSensors
+
+            except:
+                self._logger.exception("Exception in measure_recorder-loop")
 
             time.sleep(sleepTime)
         

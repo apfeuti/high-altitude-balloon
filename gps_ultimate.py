@@ -52,35 +52,44 @@ class GPSUltimate(AltitudeMeasurable):
         # data during parsing.  This would be twice a second (2hz, 500ms delay):
         # gps.send_command(b'PMTK220,500')
 
+        self._lock = threading.Lock()
+
         super().__init__()
         thread = threading.Thread(target=self._start, name="GPSUltimateThread")
         thread.start()
 
     def altitude(self):
-        self._gps.update()
-        return self._gps.altitude_m
+        with self._lock:
+            self._gps.update()
+            return self._gps.altitude_m
 
     def latitude(self):
-        self._gps.update()
-        return self._gps.latitude
+        with self._lock:
+            self._gps.update()
+            return self._gps.latitude
 
     def longitude(self):
-        self._gps.update()
-        return self._gps.longitude
+        with self._lock:
+            self._gps.update()
+            return self._gps.longitude
 
     def speed(self):
         """km/h over ground """
-        self._gps.update()
-        return self._gps.speed_knots * 1.852 # knots (nautic-mile / h) to km/h
+        with self._lock:
+            self._gps.update()
+            return self._gps.speed_knots * 1.852 # knots (nautic-mile / h) to km/h
 
     def heading(self):
-        self._gps.update()
-        return self._gps.track_angle_deg
+        with self._lock:
+            self._gps.update()
+            return self._gps.track_angle_deg
 
     def utc(self):
-        self._gps.update()
-        return self._gps.timestamp_utc
+        with self._lock:
+            self._gps.update()
+            return self._gps.timestamp_utc
 
     def has_3d_fix(self):
-        self._gps.update()
-        return self._gps.has_3d_fix
+        with self._lock:
+            self._gps.update()
+            return self._gps.has_3d_fix
