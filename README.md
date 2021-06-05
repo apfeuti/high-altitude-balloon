@@ -39,7 +39,10 @@ https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configurin
 
    ```bash
    $ sudo apt-get install python3-picamera
-   $ pip3 install exif
+   $ pip3 install piexif
+
+   Optional too see exif-infos on Raspberry shell
+   $ sudo apt-get install exif
    ```
 
 5. GPS

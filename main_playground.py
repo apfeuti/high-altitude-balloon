@@ -1,6 +1,6 @@
 from raspi_board import Board
 from bme280 import BME280
-from gps import GPS
+from gps_ultimate import GPSUltimate
 from picture_capturer import PictureCapturer
 import csv
 import os.path
@@ -37,7 +37,7 @@ print("out_pressure:" + str(bme280.pressure()))
 print("baro_altitude:" + str(bme280.altitude()))
 
 
-class LandingObserver:
+""" class LandingObserver:
     def notifyx(self, landing_altitude):
         print("LANDED at " + str(landing_altitude))
         
@@ -129,9 +129,10 @@ while (do_measure):
         writer = csv.writer(csvfile, delimiter=',')
         writer.writerow(data)
 
-    time.sleep(2)
+    time.sleep(2) """
 
-pictureCapturer = PictureCapturer(5)
+gps = GPSUltimate()
+pictureCapturer = PictureCapturer(5, gps)
 pictureCapturer.start_capturing()
 time.sleep(20)
-pictureCapturer.stop_capturing()
+pictureCapturer.stop_capturing(gps.altitude())
