@@ -37,6 +37,55 @@ class MeasureRecorder:
             try:
                 with open(self._data_file, 'a') as csvfile:
                     startSample = datetime.datetime.utcnow()
+
+                    gps_time = "n/a"
+                    gps_latitude = 0
+                    gps_longitude = 0
+                    gps_altitude = 0
+                    gps_speed = 0
+                    gps_heading = 0
+                    gps_ascending_rate = 0
+                    try:
+                        gps_time = time.strftime('%Y-%m-%dT%H:%M:%SZ', self._gps.utc())
+                        gps_latitude = self._gps.latitude()
+                        gps_longitude = self._gps.longitude()
+                        gps_altitude = self._gps.altitude()
+                        gps_speed = self._gps.speed()
+                        gps_heading = self._gps.heading()
+                        gps_ascending_rate = self._gps.ascending_rate()
+                    except:
+                        self._logger.exception("Error reading gps-sensor")
+
+
+                    capsule_temp = 0
+                    capsule_humidity = 0
+                    capsule_pressure = 0
+                    capsule_altitude = 0
+                    capsule_ascending_rate = 0
+                    try:
+                        capsule_temp = self._bme280InCapsule.temp()
+                        capsule_humidity = self._bme280InCapsule.humidity()
+                        capsule_pressure = self._bme280InCapsule.pressure()
+                        capsule_altitude = self._bme280InCapsule.altitude()
+                        capsule_ascending_rate = self._bme280InCapsule.ascending_rate()
+                    except:
+                        self._logger.exception("Error reading capsule-bme280-sensor")
+
+                    
+                    outside_temp = 0
+                    outside_humidity = 0
+                    outside_pressure = 0
+                    outside_altitude = 0
+                    outside_ascending_rate = 0
+                    try:
+                        outside_temp = self._bme280Outside.temp()
+                        outside_humidity = self._bme280Outside.humidity()
+                        outside_pressure = self._bme280Outside.pressure()
+                        outside_altitude = self._bme280Outside.altitude()
+                        outside_ascending_rate = self._bme280Outside.ascending_rate()
+                    except:
+                        self._logger.exception("Error reading outside-bme280-sensor")
+
                     data = [startSample.replace(tzinfo=datetime.timezone.utc).isoformat(timespec='milliseconds'),
                             self._board.temp(),
                             self._board.volt_core(),
@@ -44,23 +93,23 @@ class MeasureRecorder:
                             self._board.volt_sdram_i(),
                             self._board.volt_sdram_p(),
                             self._board.throttled(),                  #0x5 means: under voltage, currently throttled. See https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=147781&start=50#p972790
-                            time.strftime('%Y-%m-%dT%H:%M:%SZ', self._gps.utc()),
-                            "{:0.6f}".format(self._gps.latitude()),
-                            "{:0.6f}".format(self._gps.longitude()),
-                            "{:0.2f}".format(self._gps.altitude()),
-                            "{:0.2f}".format(self._gps.speed()),
-                            "{:0.2f}".format(self._gps.heading()),
-                            "{:0.2f}".format(self._gps.ascending_rate()),
-                            "{:0.2f}".format(self._bme280InCapsule.temp()),
-                            "{:0.2f}".format(self._bme280InCapsule.humidity()),
-                            "{:0.5f}".format(self._bme280InCapsule.pressure()),
-                            "{:0.2f}".format(self._bme280InCapsule.altitude()),
-                            "{:0.2f}".format(self._bme280InCapsule.ascending_rate()),
-                            "{:0.2f}".format(self._bme280Outside.temp()),
-                            "{:0.2f}".format(self._bme280Outside.humidity()),
-                            "{:0.5f}".format(self._bme280Outside.pressure()),
-                            "{:0.2f}".format(self._bme280Outside.altitude()),
-                            "{:0.2f}".format(self._bme280Outside.ascending_rate())
+                            gps_time,
+                            "{:0.6f}".format(gps_latitude),
+                            "{:0.6f}".format(gps_longitude),
+                            "{:0.2f}".format(gps_altitude),
+                            "{:0.2f}".format(gps_speed),
+                            "{:0.2f}".format(gps_heading),
+                            "{:0.2f}".format(gps_ascending_rate),
+                            "{:0.2f}".format(capsule_temp),
+                            "{:0.2f}".format(capsule_humidity),
+                            "{:0.5f}".format(capsule_pressure),
+                            "{:0.2f}".format(capsule_altitude),
+                            "{:0.2f}".format(capsule_ascending_rate),
+                            "{:0.2f}".format(outside_temp),
+                            "{:0.2f}".format(outside_humidity),
+                            "{:0.5f}".format(outside_pressure),
+                            "{:0.2f}".format(outside_altitude),
+                            "{:0.2f}".format(outside_ascending_rate)
                             ]
                     writer = csv.writer(csvfile, delimiter=',')
                     writer.writerow(data)
