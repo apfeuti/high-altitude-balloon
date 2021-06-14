@@ -48,6 +48,10 @@ while gps.altitude() is None:
     logger.info("GPS-altitude is None - waiting for fix")
     time.sleep(1)
 
+# we cannot immediately read the time from the gps - it seems to be invalid for a certain time
+# waiting improves the altitude-accuracy as well
+time.sleep(60)
+
 gps_local_time = time.localtime(calendar.timegm(gps.utc())) # convert time_struct UTC to time_struct local-time
 logger.info("GPS got fix. Setting system-time to {}".format(time.strftime('%Y-%m-%d %H:%M:%S %z', gps_local_time)))
 # first, we have to (manualy, outside of this script) disable automatic network-time sync: sudo timedatectl set-ntp false
@@ -88,7 +92,7 @@ measureRecorder.start_measures()
 #gps.subscribe_rise_above(4000, board.disableWifi)
 #gps.subscribe_fall_below(4000, board.enableWifi)
 
-pictureCapturer = PictureCapturer(5)
+pictureCapturer = PictureCapturer(5, gps)
 gps.subscribe_landed(pictureCapturer.stop_capturing)
 pictureCapturer.start_capturing()
 

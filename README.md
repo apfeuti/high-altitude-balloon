@@ -54,3 +54,33 @@ https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configurin
    ```bash
    $ sudo pip3 install adafruit-circuitpython-gps
    ```
+
+## Pinout (connecting sensors)
+### BME280 (Sensor 1, inside capsule, default I2C-Address 0x77)
+|PIN Raspberry | PIN BME280|
+|--------------|-----------|
+|3V3           |VIN        |
+|GND           |GND        |
+|SCL           |SCK        |
+|SDA           |SDI        |
+https://learn.adafruit.com/adafruit-bme280-humidity-barometric-pressure-temperature-sensor-breakout/python-circuitpython-test#step-2994996
+
+
+### BME280 (Sensor 2, outside capsule, I2C-Address **0x76**)
+|PIN Raspberry | PIN BME280|
+|--------------|-----------|
+|3V3           |VIN        |
+|GND           |GND        |
+|SCL           |SCK        |
+|SDA           |SDI        |
+|**GND**       |**SDO**    |
+https://learn.adafruit.com/adafruit-bme280-humidity-barometric-pressure-temperature-sensor-breakout/arduino-test#i2c-wiring-2958097-2
+
+## Ultimate GPS
+|PIN Raspberry | PIN Ultimate GPS|
+|--------------|-----------------|
+|3V3           |VIN              |
+|GND           |GND              |
+|TX            |RX               |
+|RX            |TX               |
+https://learn.adafruit.com/adafruit-ultimate-gps/circuitpython-parsing#step-3003924
