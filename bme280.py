@@ -13,7 +13,7 @@ class BME280(AltitudeMeasurable):
     # Create library object using Bus I2C port
     _i2c = busio.I2C(board.SCL, board.SDA)
 
-    def __init__(self, sea_level_pressure=1013.25, address=0x77, threadName="BME280Thread"):
+    def __init__(self, sea_level_pressure=1013.25, address=0x77):
         """
         parameter sea_level_pressure: the current pressure (hPa) at sea-level for your current location. Used to calibre the altitude-barometer
         address=0x77 is default. address=0x76 alternative SDO to GND
@@ -23,6 +23,8 @@ class BME280(AltitudeMeasurable):
         self._bme280.sea_level_pressure = sea_level_pressure
         super().__init__()
         
+
+    def startThread(self, threadName="BME280Thread"):
         thread = threading.Thread(target=self._start, name=threadName)
         thread.start()
         

@@ -63,18 +63,22 @@ logger.info("Output from sudo timedatectl set-time: {}".format(output_timedatect
 
 logger.info("GPS initial altitude: " + str(gps.altitude()))
 
+gps.startThread()
+
 # 1hPa reduction per 8.3m altitude (seems that https://www.meteoschweiz.admin.ch/home/messwerte.html?param=messwerte-luftdruck-qfe-10min uses this formula).
 # For a more dedicated formula see https://de.wikipedia.org/wiki/Barometrische_Höhenformel, section Reduktion auf Meereshöhe
 
 ADDRESS_IN_CAPSULE = 0x77
 qfe = BME280.pressureStatic(ADDRESS_IN_CAPSULE) # do NOT make an intance here, which would create a thread.
 qff = qfe + (gps.altitude() / 8.3 ) - 1.1 # - correction-factor. Determined empiric
-bme280InCapsule = BME280(qff, ADDRESS_IN_CAPSULE, "BME280CapsuleThread")
+bme280InCapsule = BME280(qff, ADDRESS_IN_CAPSULE)
+bme280InCapsule.startThread("BME280CapsuleThread")
 
 ADDRESS_OUTSIDE = 0x76 # wire SDO to GND
 qfe = BME280.pressureStatic(ADDRESS_OUTSIDE) # do NOT make an intance here, which would create a thread.
 qff = qfe + (gps.altitude() / 8.3 ) - 1.15 # - correction-factor. Determined empiric
-bme280Outside = BME280(qff, ADDRESS_OUTSIDE, "BME280OutsideThread")
+bme280Outside = BME280(qff, ADDRESS_OUTSIDE)
+bme280Outside.startThread("BME280OutsideThread")
 
 
 measureRecorder = MeasureRecorder('./data/log/measures.csv', 2, board, gps, bme280InCapsule, bme280Outside)

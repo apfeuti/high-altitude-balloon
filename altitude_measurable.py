@@ -37,6 +37,7 @@ class AltitudeMeasurable:
     
     
     def _start(self):
+        self._logger.info("Started")
         prev_altitude = None
         prev_time = datetime.datetime.utcnow()
 

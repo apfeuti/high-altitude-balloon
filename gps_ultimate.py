@@ -55,8 +55,12 @@ class GPSUltimate(AltitudeMeasurable):
         self._lock = threading.Lock()
 
         super().__init__()
+        
+
+    def startThread(self):
         thread = threading.Thread(target=self._start, name="GPSUltimateThread")
         thread.start()
+
 
     def altitude(self):
         with self._lock:

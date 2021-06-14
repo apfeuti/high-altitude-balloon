@@ -21,6 +21,9 @@ class GPSMock(AltitudeMeasurable):
 
     def __init__(self):
         super().__init__()
+
+
+    def startThread(self):
         thread = threading.Thread(target=self._start, name="GPSMockThread")
         thread.start()
 
